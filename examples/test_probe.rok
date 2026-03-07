@@ -1,0 +1,47 @@
+// test_probe.rok — Example test file using the Probe assertion library
+// Run with: rockit test test_probe.rok
+
+import rockit.test.probe
+
+fun main(): Unit {
+    println("Running Probe example tests...")
+
+    // --- Boolean assertions ---
+    assertTrue(1 + 1 == 2, "basic arithmetic")
+    assertFalse(1 > 2, "1 is not greater than 2")
+
+    // --- Integer equality ---
+    assertEquals(42, 42, "integer equality")
+    assertNotEquals(10, 20, "integers should differ")
+
+    // --- Comparison assertions ---
+    assertGreaterThan(10, 5, "10 > 5")
+    assertLessThan(3, 7, "3 < 7")
+    assertGreaterThanOrEqual(5, 5, "5 >= 5")
+    assertLessThanOrEqual(4, 4, "4 <= 4")
+
+    // --- Range assertion ---
+    assertBetween(50, 1, 100, "50 is between 1 and 100")
+
+    // --- String equality ---
+    assertEqualsStr("hello", "hello", "string equality")
+    assertNotEqualsStr("hello", "world", "strings should differ")
+
+    // --- String content assertions ---
+    assertStringContains("hello world", "world", "contains substring")
+    assertStartsWith("rockit-probe", "rockit", "starts with prefix")
+    assertEndsWith("test_probe.rok", ".rok", "ends with suffix")
+
+    // --- String length and emptiness ---
+    assertStringEmpty("", "empty string check")
+    assertStringNotEmpty("non-empty", "non-empty string check")
+    assertStringLength("hello", 5, "string length check")
+
+    // --- Bool equality ---
+    assertEqualsBool(true, true, "bool equality")
+
+    // --- Generic assert ---
+    assert(100 > 0, "100 is positive")
+
+    println("All Probe example tests passed.")
+}

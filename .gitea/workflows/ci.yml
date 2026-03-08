@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  validate:
+    name: Validate probe source
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "machine ${GITHUB_SERVER_URL#https://} login x-access-token password ${GITHUB_TOKEN}" > ~/.netrc
+          chmod 600 ~/.netrc
+          BRANCH="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          git clone --depth 1 --branch "${BRANCH}" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" .
+        env:
+          GITHUB_TOKEN: ${{ gitea.token }}
+
+      - name: Verify probe.rok exists and has content
+        run: |
+          if [ ! -f src/probe.rok ]; then
+            echo "ERROR: src/probe.rok not found"
+            exit 1
+          fi
+          line_count=$(wc -l < src/probe.rok)
+          if [ "$line_count" -lt 10 ]; then
+            echo "ERROR: src/probe.rok appears to be empty or truncated ($line_count lines)"
+            exit 1
+          fi
+          echo "src/probe.rok exists with $line_count lines"
+
+      - name: Verify example test file exists
+        run: |
+          if [ ! -f examples/test_probe.rok ]; then
+            echo "ERROR: examples/test_probe.rok not found"
+            exit 1
+          fi
+          echo "examples/test_probe.rok exists"
+
+      - name: Check for required assertion functions
+        run: |
+          missing=0
+          for fn in assert assertTrue assertFalse assertEquals assertEqualsStr \
+                    assertNotEquals assertNotEqualsStr assertEqualsBool \
+                    assertGreaterThan assertLessThan assertGreaterThanOrEqual \
+                    assertLessThanOrEqual assertBetween assertStringContains \
+                    assertStartsWith assertEndsWith assertStringEmpty \
+                    assertStringNotEmpty assertStringLength fail; do
+            if ! grep -q "fun ${fn}(" src/probe.rok; then
+              echo "MISSING: $fn"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "ERROR: one or more required assertion functions are missing"
+            exit 1
+          fi
+          echo "All required assertion functions found"
